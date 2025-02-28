@@ -18,6 +18,10 @@ def main():
 
     model = BigramLanguageModel(vocab_size).to(config.device)
     logger.info("Model initialized.")
+    
+    num_params = sum(p.numel() for p in model.parameters())/1e6
+
+    logger.info(f"{num_params} M parameters")
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
 
