@@ -11,6 +11,8 @@ class Config:
         self.eval_iters = 200
         self.n_embed = 32
         self.num_head = 4
+        self.n_layer = 2
+        self.dropout = 0.2
         self.seed = 1337
         self.data_path = 'data.txt'
         self.split_ratio = 0.9
