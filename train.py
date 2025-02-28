@@ -40,6 +40,6 @@ def main():
 
     # generate from the model
     context = torch.zeros((1, 1), dtype=torch.long, device=config.device)
-    generated_text = decode(model.generate(context, max_new_tokens=500)[0].tolist())
+    generated_text = decode(model.generate(context, max_new_tokens=500, block_size=config.block_size)[0].tolist())
     logger.info("Generated text: %s", generated_text)
     
