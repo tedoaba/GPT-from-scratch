@@ -16,7 +16,7 @@ def main():
     train_data, val_data, vocab_size, decode = prepare_data(config.data_path)
     logger.info("Data loaded successfully.")
 
-    model = BigramLanguageModel(vocab_size).to(config.device)
+    model = BigramLanguageModel(vocab_size, config.n_embed, config.num_head, config.n_layer, config.block_size, config.dropout).to(config.device)
     logger.info("Model initialized.")
     
     num_params = sum(p.numel() for p in model.parameters())/1e6

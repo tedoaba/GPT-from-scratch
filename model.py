@@ -1,17 +1,16 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from config import config
 
 class Head(nn.Module):
 
-    def __init__(self, head_size):
+    def __init__(self, head_size, n_embed, block_size, dropout):
         super().__init__()
-        self.key = nn.Linear(config.n_embed, head_size, bias=False)
-        self.query = nn.Linear(config.n_embed, head_size, bias=False)
-        self.value = nn.Linear(config.n_embed, head_size, bias=False)
-        self.register_buffer('tril', torch.tril(torch.ones(config.block_size, config.block_size)))
-        self.dropout = nn.Dropout(config.dropout)
+        self.key = nn.Linear(n_embed, head_size, bias=False)
+        self.query = nn.Linear(n_embed, head_size, bias=False)
+        self.value = nn.Linear(n_embed, head_size, bias=False)
+        self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
         B, T, C = x.shape
@@ -29,11 +28,11 @@ class Head(nn.Module):
 
 class MultiHeadAttention(nn.Module):
 
-    def __init__(self, num_heads, head_size):
+    def __init__(self, num_heads, head_size, n_embed, block_size, dropout):
         super().__init__()
-        self.heads = nn.ModuleList((Head(head_size) for _ in range(num_heads)))
-        self.proj = nn.Linear(config.n_embed, config.n_embed)
-        self.dropout = nn.Dropout(config.dropout)
+        self.heads = nn.ModuleList((Head(head_size, n_embed, block_size, dropout) for _ in range(num_heads)))
+        self.proj = nn.Linear(n_embed, n_embed)
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
         out = torch.cat([h(x) for h in self.heads], dim=-1)
@@ -42,13 +41,13 @@ class MultiHeadAttention(nn.Module):
 
 class FeedForward(nn.Module):
 
-    def __init__(self, n_embed):
+    def __init__(self, n_embed, dropout):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(n_embed, 4 * n_embed),
             nn.ReLU(),
             nn.Linear(4 * n_embed, n_embed),
-            nn.Dropout(config.dropout),
+            nn.Dropout(dropout),
         )
 
     def forward(self, x):
@@ -57,11 +56,11 @@ class FeedForward(nn.Module):
 class Block(nn.Module):
     '''Transformer block: communication followed by computation'''
 
-    def __init__(self, n_embed, num_head):
+    def __init__(self, n_embed, num_head, block_size, dropout):
         super().__init__()
         head_size = n_embed // num_head
-        self.sa = MultiHeadAttention(num_head, head_size)
-        self.ffwd = FeedForward(n_embed)
+        self.sa = MultiHeadAttention(num_head, head_size, n_embed, block_size, dropout)
+        self.ffwd = FeedForward(n_embed, dropout)
         self.ln1 = nn.LayerNorm(n_embed)
         self.ln2 = nn.LayerNorm(n_embed)
 
@@ -72,13 +71,13 @@ class Block(nn.Module):
 
 class BigramLanguageModel(nn.Module):
 
-    def __init__(self, vocab_size):
+    def __init__(self, vocab_size, n_embed, num_head, n_layer, block_size, dropout):
         super().__init__()
-        self.token_embedding_table = nn.Embedding(vocab_size, config.n_embed)
-        self.position_embedding_table = nn.Embedding(config.block_size, config.n_embed)
-        self.blocks = nn.Sequential(*[Block(config.n_embed, num_head=config.num_head) for _ in range(config.n_layer)])
-        self.ln_f = nn.LayerNorm(config.n_embed)
-        self.lm_head = nn.Linear(config.n_embed, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, n_embed)
+        self.position_embedding_table = nn.Embedding(block_size, n_embed)
+        self.blocks = nn.Sequential(*[Block(n_embed, num_head, block_size, dropout) for _ in range(n_layer)])
+        self.ln_f = nn.LayerNorm(n_embed)
+        self.lm_head = nn.Linear(n_embed, vocab_size)
 
     def forward(self, idx, targets=None):
 
@@ -100,10 +99,11 @@ class BigramLanguageModel(nn.Module):
 
         return logits, loss
     
-    def generate(self, idx, max_new_tokens):
+    def generate(self, idx, max_new_tokens, block_size):
+        '''generate new tokens given a prompt'''
 
         for _ in range(max_new_tokens):
-            idx_cond = idx[: , -config.block_size:]
+            idx_cond = idx[: , -block_size:]
             logits, loss = self(idx_cond)
             logits = logits[:, -1, :]
             probs = F.softmax(logits, dim=1)
