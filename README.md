@@ -9,6 +9,9 @@ This project implements a Bigram Language Model from scratch using PyTorch. The 
 - **data_loader.py**: Handles data loading and preprocessing.
 - **config.py**: Contains configuration settings and hyperparameters.
 - **main.py**: Entry point to start the training process.
+- **logs/**: Directory to store training logs and hyperparameter tuning results.
+- **experiments/**: Directory to store experiment scripts and configurations.
+- **checkpoints/**: Directory to save model checkpoints during training.
 
 ## Requirements
 
@@ -50,6 +53,13 @@ This project implements a Bigram Language Model from scratch using PyTorch. The 
 
 4. Generate text:
     - After training, the model will generate text based on the learned patterns from the dataset.
+
+5. Tune hyperparameters:
+    - Run the hyperparameter tuning script to find the best parameters for training:
+    ```sh
+    python experiments/hyperparameter_tuning.py
+    ```
+    - The best hyperparameters will be saved in `logs/hyperparameters/best_hyperparameters.txt`
 
 ## Configuration
 
