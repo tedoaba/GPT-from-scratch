@@ -27,7 +27,8 @@ def objective(trial):
     config.weight_decay = weight_decay
 
     train_loss, val_loss = train_model()
-    if torch.isnan(val_loss):
+    val_loss_tensor = torch.tensor(val_loss)
+    if torch.isnan(val_loss_tensor):
         return float('inf')
     
     return val_loss
@@ -35,6 +36,9 @@ def objective(trial):
 def tune_hyperparameters():
     study = optuna.create_study(direction='minimize', pruner=optuna.pruners.MedianPruner())
     study.optimize(objective, n_trials=2, n_jobs=4)
+
+    if len(study.trials) == 0:
+        raise ValueError("No trials are completed yet.")
 
     best_params = study.best_params
     print("Best hyperparameters: ", best_params)
