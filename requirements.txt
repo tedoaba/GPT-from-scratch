@@ -1,2 +1,10 @@
 torch
+torchvision
+numpy
+pandas
+matplotlib
+scikit-learn
+tensorboard
+wandb
+optuna
 optuna-integration[pytorch_lightning]

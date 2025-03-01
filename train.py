@@ -4,6 +4,7 @@ from config import config
 from data_loader import prepare_data
 from model import BigramLanguageModel
 from utils import get_batch, estimate_loss
+from torch.amp import GradScaler, autocast
 
 def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -24,6 +25,7 @@ def main():
     logger.info(f"{num_params} M parameters")
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
+    scalar = GradScaler()
 
     for iter in range(config.max_iters):
 
@@ -33,10 +35,13 @@ def main():
 
         xb, yb = get_batch('train', train_data)
 
-        logits, loss = model(xb, yb)
+        with autocast(device_type=config.device):
+            logits, loss = model(xb, yb)
+
         optimizer.zero_grad(set_to_none=True)
-        loss.backward()
-        optimizer.step()
+        scalar.scale(loss).backward()
+        scalar.step(optimizer)
+        scalar.update()
 
     # generate from the model
     context = torch.zeros((1, 1), dtype=torch.long, device=config.device)
