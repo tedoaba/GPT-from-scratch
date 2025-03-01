@@ -5,8 +5,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import optuna
 import torch
 from optuna.integration import PyTorchLightningPruningCallback
-from train import main as train_model
-from config import config
+from src.train import main as train_model
+from src.config import config
 import logging
 
 def objective(trial):
@@ -27,6 +27,9 @@ def objective(trial):
     config.weight_decay = weight_decay
 
     train_loss, val_loss = train_model()
+    if torch.isnan(val_loss):
+        return float('inf')
+    
     return val_loss
 
 def tune_hyperparameters():
@@ -43,4 +46,5 @@ def tune_hyperparameters():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
     tune_hyperparameters()

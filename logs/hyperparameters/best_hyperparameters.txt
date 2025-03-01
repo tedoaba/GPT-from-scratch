@@ -1,8 +1,8 @@
 Best hyperparameters: 
-batch_size: 64
-learning_rate: 0.04998313063861825
+batch_size: 16
+learning_rate: 0.017344272217511784
 n_layer: 3
-n_embed: 64
-num_head: 4
-dropout: 0.3299407947965439
-weight_decay: 0.006513045865945693
+n_embed: 32
+num_head: 2
+dropout: 0.1448967889748845
+weight_decay: 0.004158241074975621

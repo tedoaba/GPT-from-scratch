@@ -1,5 +1,5 @@
 import torch
-from config import config
+from src.config import config
 
 def get_batch(split, data):
     '''generate a small batch of data of input x and targets y'''

@@ -16,5 +16,6 @@ class Config:
         self.seed = 1337
         self.data_path = 'data.txt'
         self.split_ratio = 0.9
+        self.weight_decay = 1e-3
 
 config = Config()
