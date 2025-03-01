@@ -1,3 +1,4 @@
+import os
 import torch
 import logging
 from config import config
@@ -5,6 +6,7 @@ from data_loader import prepare_data
 from model import BigramLanguageModel
 from utils import get_batch, estimate_loss
 from torch.amp import GradScaler, autocast
+from torch.utils.tensorboard import SummaryWriter
 
 def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -26,12 +28,15 @@ def main():
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
     scalar = GradScaler()
+    writer = SummaryWriter(log_dir=os.path.join('logs', 'tensorboard'))
 
     for iter in range(config.max_iters):
 
         if iter % config.eval_interval == 0:
             losses = estimate_loss(model, train_data, val_data)
             logger.info(f"Step {iter}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
+            writer.add_scalar('Loss/train', losses['train'], iter)
+            writer.add_scalar('Loss/val', losses['val'], iter)
 
         xb, yb = get_batch('train', train_data)
 
@@ -47,6 +52,8 @@ def main():
     context = torch.zeros((1, 1), dtype=torch.long, device=config.device)
     generated_text = decode(model.generate(context, max_new_tokens=500, block_size=config.block_size)[0].tolist())
     logger.info("Generated text: %s", generated_text)
+
+    writer.close()
 
     return losses['train'], losses['val']
     
