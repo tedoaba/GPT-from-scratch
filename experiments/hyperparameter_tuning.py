@@ -4,6 +4,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import optuna
 import torch
+from optuna.integration import PyTorchLightningPruningCallback
 from train import main as train_model
 from config import config
 import logging
@@ -15,6 +16,7 @@ def objective(trial):
     n_embed = trial.suggest_categorical('n_embed', [16, 32, 64])
     num_head = trial.suggest_categorical('num_head', [2, 4, 8])
     dropout = trial.suggest_float('dropout', 0.1, 0.5)
+    weight_decay = trial.suggest_float('weight_decay', 1e-5, 1e-2)
 
     config.batch_size = batch_size
     config.learning_rate = learning_rate
@@ -22,12 +24,13 @@ def objective(trial):
     config.n_embed = n_embed
     config.num_head = num_head
     config.dropout = dropout
+    config.weight_decay = weight_decay
 
     train_loss, val_loss = train_model()
     return val_loss
 
 def tune_hyperparameters():
-    study = optuna.create_study(direction='minimize')
+    study = optuna.create_study(direction='minimize', pruner=optuna.pruners.MedianPruner())
     study.optimize(objective, n_trials=2)
 
     best_params = study.best_params
