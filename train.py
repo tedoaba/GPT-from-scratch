@@ -42,4 +42,6 @@ def main():
     context = torch.zeros((1, 1), dtype=torch.long, device=config.device)
     generated_text = decode(model.generate(context, max_new_tokens=500, block_size=config.block_size)[0].tolist())
     logger.info("Generated text: %s", generated_text)
+
+    return losses['train'], losses['val']
     
