@@ -31,7 +31,7 @@ def objective(trial):
 
 def tune_hyperparameters():
     study = optuna.create_study(direction='minimize', pruner=optuna.pruners.MedianPruner())
-    study.optimize(objective, n_trials=2)
+    study.optimize(objective, n_trials=2, n_jobs=4)
 
     best_params = study.best_params
     print("Best hyperparameters: ", best_params)
