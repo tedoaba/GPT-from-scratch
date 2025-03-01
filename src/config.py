@@ -14,7 +14,7 @@ class Config:
         self.n_layer = 2
         self.dropout = 0.2
         self.seed = 1337
-        self.data_path = 'data.txt'
+        self.data_path = 'data/data.txt'
         self.split_ratio = 0.9
         self.weight_decay = 1e-3
 

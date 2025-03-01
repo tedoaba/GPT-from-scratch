@@ -9,7 +9,6 @@ gpt/
 logic/
 model/
 advanced/
-data.txt
 
 # Distribution / packaging
 .Python
